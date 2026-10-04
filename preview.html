@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RV Fridge Card - Vorschau</title>
+<style>
+  body { margin: 0; padding: 20px; background: #1c1c1e; font-family: Roboto, system-ui, sans-serif; color: #fff; }
+  .col { max-width: 420px; margin: 0 auto; }
+  ha-card { display: block; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .log { font: 12px monospace; color: #9fb0c7; margin-top: 12px; white-space: pre-wrap; }
+</style></head>
+<body><div class="col"><div id="mount"></div><div class="log" id="log"></div></div>
+<script>
+  // Minimaler Ersatz fuer HA-Elemente, die die Karte erwartet
+  customElements.define("ha-card", class extends HTMLElement {});
+  const now = () => new Date().toISOString();
+  const states = {
+    "switch.kb_power": { state: "on", last_reported: now() },
+    "select.kb_target": { state: "5 °C", last_reported: now() },
+    "select.kb_mode": { state: "ECO", last_reported: now() },
+    "select.kb_bp": { state: "M", last_reported: now() },
+    "sensor.kb_temp": { state: "7.3", last_reported: now() },
+    "sensor.kb_batt": { state: "92", last_reported: now() },
+    "sensor.kb_volt": { state: "13.1", last_reported: now() },
+  };
+  const hass = {
+    language: new URLSearchParams(location.search).get("lang") || "de",
+    states,
+    callService(domain, service, data) {
+      document.getElementById("log").textContent += `${domain}.${service} ${JSON.stringify(data)}\n`;
+      const s = states[data.entity_id];
+      if (service === "select_option") s.state = data.option;
+      if (service === "turn_on") s.state = "on";
+      if (service === "turn_off") s.state = "off";
+      s.last_reported = now();
+      card.hass = { ...hass, states: { ...states } };
+    },
+  };
+  window.hass = hass;
+</script>
+<script src="rv-fridge-card.js"></script>
+<script>
+  const card = document.createElement("rv-fridge-card");
+  card.setConfig({
+    title: "Kühlbox",
+    entity_power: "switch.kb_power", entity_target: "select.kb_target",
+    entity_mode: "select.kb_mode", entity_battery_protection: "select.kb_bp",
+    entity_temp: "sensor.kb_temp", entity_battery: "sensor.kb_batt", entity_voltage: "sensor.kb_volt",
+  });
+  card.hass = hass;
+  document.getElementById("mount").appendChild(card);
+  window.card = card;
+</script></body></html>
