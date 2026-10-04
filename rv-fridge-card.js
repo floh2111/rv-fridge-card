@@ -43,6 +43,9 @@ const TRANSLATIONS = {
     editor_entity_temp: "Temperature sensor",
     editor_entity_battery: "Battery sensor (optional)",
     editor_entity_voltage: "Voltage sensor (optional)",
+    editor_appearance: "Appearance",
+    appearance_auto: "Follow Home Assistant theme",
+    appearance_display: "Dark blue (like the display)",
   },
   de: {
     default_title: "Kühlbox",
@@ -66,6 +69,9 @@ const TRANSLATIONS = {
     editor_entity_temp: "Temperatursensor",
     editor_entity_battery: "Batteriesensor (optional)",
     editor_entity_voltage: "Spannungssensor (optional)",
+    editor_appearance: "Darstellung",
+    appearance_auto: "Home-Assistant-Theme übernehmen",
+    appearance_display: "Dunkelblau (wie das Display)",
   },
 };
 
@@ -103,15 +109,27 @@ const fmt = (v, digits = 0) => v.toFixed(digits).replace(".", ",").replace("-", 
 const CARD_STYLE = `
   :host { display: block; }
   ha-card {
-    --rf-bg: var(--rv-fridge-bg, #101820);
-    --rf-panel: var(--rv-fridge-panel, #1b2a41);
-    --rf-button: var(--rv-fridge-button, #2b3a55);
-    --rf-active: var(--rv-fridge-active, #3fa8dc);
-    --rf-text: var(--rv-fridge-text, #ffffff);
-    --rf-muted: var(--rv-fridge-muted, #9fb0c7);
+    /* Standard: Farben aus dem Home-Assistant-Theme (hell oder dunkel) */
+    --rf-bg: var(--rv-fridge-bg, var(--ha-card-background, var(--card-background-color, #fff)));
+    --rf-button: var(--rv-fridge-button, var(--secondary-background-color, #e6ebf1));
+    --rf-active: var(--rv-fridge-active, var(--primary-color, #03a9f4));
+    --rf-on-active: var(--rv-fridge-on-active, var(--text-primary-color, #fff));
+    --rf-text: var(--rv-fridge-text, var(--primary-text-color, #1c1c1e));
+    --rf-muted: var(--rv-fridge-muted, var(--secondary-text-color, #6b7a8c));
+    --rf-off: var(--rv-fridge-off, var(--disabled-text-color, #9aa4b1));
     background: var(--rf-bg);
     color: var(--rf-text);
     padding: 14px 16px 18px;
+  }
+  /* appearance: display -> dunkelblau wie die Seite auf dem Fridolin-Display */
+  ha-card.display {
+    --rf-bg: var(--rv-fridge-bg, #101820);
+    --rf-button: var(--rv-fridge-button, #2b3a55);
+    --rf-active: var(--rv-fridge-active, #3fa8dc);
+    --rf-on-active: var(--rv-fridge-on-active, #06121d);
+    --rf-text: var(--rv-fridge-text, #ffffff);
+    --rf-muted: var(--rv-fridge-muted, #9fb0c7);
+    --rf-off: var(--rv-fridge-off, #55606f);
   }
   .rf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
   .rf-title { font-size: 1.5em; font-weight: 600; }
@@ -122,7 +140,7 @@ const CARD_STYLE = `
   .rf-ring svg { display: block; width: 100%; height: auto; }
   .rf-track { fill: none; stroke: var(--rf-button); stroke-width: 18; stroke-linecap: round; }
   .rf-value { fill: none; stroke: var(--rf-active); stroke-width: 18; stroke-linecap: round; transition: stroke 200ms ease; }
-  .rf-value.off { stroke: #55606f; }
+  .rf-value.off { stroke: var(--rf-off); }
   .rf-center {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -141,7 +159,7 @@ const CARD_STYLE = `
   }
   .rf-btn:hover { filter: brightness(1.12); }
   .rf-btn:active { transform: translateY(1px); filter: brightness(0.95); }
-  .rf-btn.active { background: var(--rf-active); color: #06121d; }
+  .rf-btn.active { background: var(--rf-active); color: var(--rf-on-active); }
   .rf-btn:disabled { opacity: 0.45; cursor: default; }
   .rf-step { width: 96px; font-size: 1.8em; }
   .rf-power { width: 100%; margin-top: 14px; }
@@ -167,6 +185,18 @@ class RvFridgeCardEditor extends HTMLElement {
   get _schema() {
     return [
       { name: "title", selector: { text: {} } },
+      {
+        name: "appearance",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "auto", label: t("appearance_auto", this._hass) },
+              { value: "display", label: t("appearance_display", this._hass) },
+            ],
+          },
+        },
+      },
       { name: "entity_power", selector: { entity: { domain: "switch" } } },
       { name: "entity_target", selector: { entity: { domain: "select" } } },
       { name: "entity_mode", selector: { entity: { domain: "select" } } },
@@ -222,11 +252,13 @@ class RvFridgeCard extends HTMLElement {
       entity_temp: "",
       entity_battery: "",
       entity_voltage: "",
+      appearance: "auto",
     };
   }
 
   setConfig(config) {
     this._config = {
+      appearance: "auto",
       entity_power: "",
       entity_target: "",
       entity_mode: "",
@@ -303,6 +335,7 @@ class RvFridgeCard extends HTMLElement {
     this.innerHTML = "";
     this.appendChild(style);
     this.appendChild(card);
+    this._card = card;
 
     const q = (s) => card.querySelector(s);
     this._els = {
@@ -402,6 +435,7 @@ class RvFridgeCard extends HTMLElement {
     if (!this._hass || !this._els) return;
     const h = this._hass;
     const e = this._els;
+    this._card.classList.toggle("display", this._config.appearance === "display");
     e.title.textContent = this._config.title || t("default_title", h);
 
     const connected = this._isConnected();

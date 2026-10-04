@@ -22,6 +22,7 @@ in YAML:
 ```yaml
 type: custom:rv-fridge-card
 title: Fridge
+appearance: auto      # or: display (dark blue like the Fridolin display)
 entity_power: switch.fridolin_display_kuhlbox_power
 entity_target: select.fridolin_display_kuhlbox_zieltemperatur
 entity_mode: select.fridolin_display_kuhlbox_modus
@@ -53,7 +54,7 @@ The entity IDs above are only an example - use the ones your fridge creates.
 
 ## Colors
 
-The card uses its own dark blue palette (like the display). Override with
+By default the card follows your Home Assistant theme (light or dark). With `appearance: display` it uses the dark blue palette of the Fridolin display. Override single colors with
 `card-mod` or theme variables: `--rv-fridge-bg`, `--rv-fridge-panel`,
 `--rv-fridge-button`, `--rv-fridge-active`, `--rv-fridge-text`,
 `--rv-fridge-muted`.

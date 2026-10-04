@@ -2,7 +2,13 @@
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RV Fridge Card - Vorschau</title>
 <style>
-  body { margin: 0; padding: 20px; background: #1c1c1e; font-family: Roboto, system-ui, sans-serif; color: #fff; }
+  body { margin: 0; padding: 20px; background: #f4f6f8; font-family: Roboto, system-ui, sans-serif; color: #1c1c1e;
+    /* typische Variablen des hellen HA-Standard-Themes */
+    --card-background-color: #ffffff; --primary-text-color: #212121; --secondary-text-color: #727272;
+    --primary-color: #03a9f4; --text-primary-color: #ffffff; --secondary-background-color: #e5e5e5; --disabled-text-color: #bdbdbd; }
+  body.dark { background: #111111; color: #fff;
+    --card-background-color: #1c1c1c; --primary-text-color: #e1e1e1; --secondary-text-color: #9b9b9b;
+    --secondary-background-color: #282828; --disabled-text-color: #6f6f6f; }
   .col { max-width: 420px; margin: 0 auto; }
   ha-card { display: block; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
   .log { font: 12px monospace; color: #9fb0c7; margin-top: 12px; white-space: pre-wrap; }
@@ -45,6 +51,9 @@
     entity_mode: "select.kb_mode", entity_battery_protection: "select.kb_bp",
     entity_temp: "sensor.kb_temp", entity_battery: "sensor.kb_batt", entity_voltage: "sensor.kb_volt",
   });
+  const q = new URLSearchParams(location.search);
+  if (q.get('dark')) document.body.classList.add('dark');
+  if (q.get('appearance')) card.setConfig({ ...card._config, appearance: q.get('appearance') });
   card.hass = hass;
   document.getElementById("mount").appendChild(card);
   window.card = card;

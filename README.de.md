@@ -22,6 +22,7 @@ auswählen) oder per YAML:
 ```yaml
 type: custom:rv-fridge-card
 title: Kühlbox
+appearance: auto      # oder: display (dunkelblau wie das Fridolin-Display)
 entity_power: switch.fridolin_display_kuhlbox_power
 entity_target: select.fridolin_display_kuhlbox_zieltemperatur
 entity_mode: select.fridolin_display_kuhlbox_modus
@@ -54,7 +55,7 @@ tatsächlich anlegt.
 
 ## Farben
 
-Die Karte nutzt ihre eigene dunkelblaue Palette (wie das Display). Anpassbar
+Standardmäßig übernimmt die Karte das Home-Assistant-Theme (hell oder dunkel). Mit `appearance: display` nutzt sie die dunkelblaue Palette des Fridolin-Displays. Einzelne Farben anpassbar
 per `card-mod` oder Theme-Variablen: `--rv-fridge-bg`, `--rv-fridge-panel`,
 `--rv-fridge-button`, `--rv-fridge-active`, `--rv-fridge-text`,
 `--rv-fridge-muted`.
